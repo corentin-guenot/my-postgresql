@@ -45,9 +45,9 @@ spec:
 
         portal:
           enabled: true
-    path: ./
-    repoURL: https://github.com/dbeaver/cloudbeaver
-    targetRevision: devel
+    repoURL: https://charts.truecharts.org/
+    targetRevision: ~
+    chart: cloudbeaver
   syncPolicy:
     automated: {}
     syncOptions:
