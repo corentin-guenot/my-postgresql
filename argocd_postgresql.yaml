@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  labels:
+  #  lens/type: app
+  #  lens/from: rcd
+  #    argocd.argoproj.io/instance: oip-ai-lab
+  #  annotations:
+  #    argocd-image-updater.argoproj.io/image-list: oip-ai-lab-api=eu.gcr.io/oip-cluster/realconsultingdata/python
+  #    argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/git-creds
+  #    argocd-image-updater.argoproj.io/rdk-api.update-strategy: semver
+  name: postgres-ql
+  namespace: argocd
+spec:
+  destination:
+    namespace: postgres-ql
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    helm:
+      values: |
+        global:
+          imageRegistry: ""
+          imagePullSecrets: []
+          storageClass: ""
+          postgresql:
+            auth:
+              postgresPassword: ""
+              username: "cbadmin"
+              password: "cbadmin"
+              database: ""
+              existingSecret: ""
+              secretKeys:
+                adminPasswordKey: ""
+                userPasswordKey: ""
+                replicationPasswordKey: ""
+            service:
+              ports:
+                postgresql: ""
+    #path: /bitnami/postgresql
+    repoURL: https://github.com/bitnami/charts/bitnami/postgresql
+    targetRevision: main
+    chart: postgresql
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - CreateNamespace=true

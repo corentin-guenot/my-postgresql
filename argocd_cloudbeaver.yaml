@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  labels:
+  #  lens/type: app
+  #  lens/from: rcd
+  #    argocd.argoproj.io/instance: oip-ai-lab
+  #  annotations:
+  #    argocd-image-updater.argoproj.io/image-list: oip-ai-lab-api=eu.gcr.io/oip-cluster/realconsultingdata/python
+  #    argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/git-creds
+  #    argocd-image-updater.argoproj.io/rdk-api.update-strategy: semver
+  name: postgres-cb
+  namespace: argocd
+spec:
+  destination:
+    #namespace: postgres-test
+    namespace: postgres-cb 
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    helm:
+      values: |
+        env: {}
+        image:
+          pullPolicy: IfNotPresent
+          repository: tccr.io/truecharts/cloudbeaver
+          tag: latest@sha256:07cafb780da68f2b10d491f8796ff09c37d6d337b84eb8e4c6828de2ec27da25
+        persistence:
+          appdata:
+            enabled: true
+            mountPath: /opt/cloudbeaver/workspace
+        podSecurityContext:
+          runAsGroup: 0
+          runAsUser: 0
+        securityContext:
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+        service:
+          main:
+            ports:
+              main:
+                port: 8978
+                protocol: TCP
+                targetPort: 8978
+
+        portal:
+          enabled: true
+    path: ./
+    repoURL: https://github.com/dbeaver/cloudbeaver
+    targetRevision: devel
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - CreateNamespace=true
