@@ -10,7 +10,7 @@ spec:
   source:
     path: ./templates/
     repoURL: https://github.com/corentin-guenot/my-postgresql
-    targetRevision: main
+    targetRevision: HEAD
   syncPolicy:
     automated:
       prune: true
