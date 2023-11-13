@@ -2,13 +2,6 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   labels:
-  #  lens/type: app
-  #  lens/from: rcd
-  #    argocd.argoproj.io/instance: oip-ai-lab
-  #  annotations:
-  #    argocd-image-updater.argoproj.io/image-list: oip-ai-lab-api=eu.gcr.io/oip-cluster/realconsultingdata/python
-  #    argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/git-creds
-  #    argocd-image-updater.argoproj.io/rdk-api.update-strategy: semver
   name: postgres-cb
   namespace: argocd
 spec:
@@ -46,9 +39,11 @@ spec:
         portal:
           enabled: true
     repoURL: https://charts.truecharts.org/
-    targetRevision: ~
+    targetRevision: 2.0.16
     chart: cloudbeaver
   syncPolicy:
-    automated: {}
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
