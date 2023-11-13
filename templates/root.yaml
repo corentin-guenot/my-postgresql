@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     path: ./
-    repoURL: https://github.com/corentin-guenot/my-postgresql.git
+    repoURL: https://github.com/corentin-guenot/my-postgresql
     targetRevision: main
   syncPolicy:
     automated:
