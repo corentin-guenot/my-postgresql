@@ -42,7 +42,7 @@ spec:
               websocket:
                 enabled: false
                 port: 3012
-    path: blob/main/charts/vaultwarden
+    path: charts/vaultwarden
     repoURL: https://github.com/gabe565/charts
     targetRevision: main
   syncPolicy:
