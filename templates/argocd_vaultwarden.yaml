@@ -1,0 +1,53 @@
+piVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  labels:
+  name: vaultwarden
+  namespace: argocd
+spec:
+  destination:
+    namespace: vaultwarden
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    helm:
+      values: |
+        image:
+          # -- image repository
+          repository: ghcr.io/dani-garcia/vaultwarden
+          # -- image pull policy
+          pullPolicy: IfNotPresent
+          # -- image tag
+          tag: 1.30.1-alpine
+
+        controller:
+          # -- Set the controller upgrade strategy
+          strategy: RollingUpdate
+
+        # -- environment variables. [[ref]](https://github.com/dani-garcia/vaultwarden/blob/main/.env.template)
+        # @default -- See [values.yaml](./values.yaml)
+        env:
+          # -- Token for the admin interface, preferably use a long random string.
+          #    If not set, the admin panel is disabled.
+          #    [[ref]](https://github.com/dani-garcia/vaultwarden/wiki/Enabling-admin-page#secure-the-admin_token)
+          ADMIN_TOKEN: ""
+
+        service:
+          # -- Configures service settings for the chart. Normally this does not need to be modified.
+          # @default -- See [values.yaml](./values.yaml)
+          main:
+            ports:
+              http:
+                port: 8080
+              websocket:
+                enabled: false
+                port: 3012
+    path: vaultwarden
+    repoURL: https://github.com/gabe565/charts/blob/main/charts
+    targetRevision: main
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true 
+    syncOptions:
+      - CreateNamespace=true
