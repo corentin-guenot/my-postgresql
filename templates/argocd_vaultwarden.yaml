@@ -47,7 +47,7 @@ spec:
                 enabled: false
                 port: 3012
     path: charts/vaultwarden
-    repoURL: https://github.com/gabe565/charts
+    repoURL: https://github.com/corentin.guenot/gabe_565_charts
     targetRevision: main
   syncPolicy:
     automated:
