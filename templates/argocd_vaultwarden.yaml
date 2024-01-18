@@ -46,9 +46,10 @@ spec:
               websocket:
                 enabled: false
                 port: 3012
-    path: charts/vaultwarden
+    #path: charts/vaultwarden
     repoURL: https://github.com/corentin.guenot/gabe_565_charts
     targetRevision: main
+    chart: vaultwarden
   syncPolicy:
     automated:
       prune: true
