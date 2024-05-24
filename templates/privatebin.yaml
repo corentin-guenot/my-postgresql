@@ -1,0 +1,169 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  labels:
+  name: privatebin
+  namespace: argocd
+spec:
+  destination:
+    namespace: privatebin
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    helm:
+      values: |
+        replicaCount: 1
+
+        image:
+          # https://github.com/PrivateBin/docker-nginx-fpm-alpine
+          repository: privatebin/nginx-fpm-alpine
+          # tag: latest # defaults to Chart.appVersion
+          pullPolicy: IfNotPresent
+          ## Optionally specify an array of imagePullSecrets.
+          ## Secrets must be manually created in the namespace.
+          ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+          ##
+          # pullSecrets:
+          #   - myRegistrKeySecretName
+
+        podAnnotations: {}
+        additionalLabels: {}
+
+        nameOverride: ""
+        fullnameOverride: ""
+        datapath: "/srv/data"
+
+        service:
+          type: ClusterIP
+          port: 80
+          portName: http
+          annotations: {}
+          ## Limit load balancer source ips to list of CIDRs (where available)
+          # loadBalancerSourceRanges: []
+
+        controller:
+          # Valid values are "Deployment", "StatefulSet", and "Both"
+          kind: Deployment
+          pvc:
+            requests: "1Gi"
+            accessModes: "ReadWriteOnce"
+            ## If defined, storageClassName: <storageClass>
+            ## If set to "-", storageClassName: "", which disables dynamic provisioning
+            ## If undefined (the default) or set to null, no storageClassName spec is
+            ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+            ##   GKE, AWS & OpenStack)
+            ## Please be aware that gp2 supports only RWO, check with
+            ## this table:
+            ## https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes
+            ##
+            # storageClass: "-"
+          # For deployment controller, an emptyDir can be enable in the pod for writing data
+          # with the following option
+          emptyDir: false
+        securityContext:
+          runAsUser: 65534
+          runAsGroup: 82
+          fsGroup: 82
+        containers:
+          - name: privatebin
+            securityContext:
+              readOnlyRootFilesystem: true
+
+        extraVolumes: []
+          # Optionally specify extra list of additional volumes for PrivateBin pod.
+          # Example
+          # - name: nginx-params
+          #   configMap:
+          #     name: nginx-params
+
+        extraVolumeMounts: []
+          # Optionally specify extra list of additional volumeMounts for PrivateBin pod.
+          # Example
+          # - mountPath: /etc/nginx/server.d
+          #   name: nginx-params
+
+
+        ingress:
+          enabled: true
+          className: "nginx"  # Replace with your desired Ingress class
+          annotations: 
+            cert-manager.io/cluster-issuer: letsencrypt-prod
+            # kubernetes.io/tls-acme: "true"  # Uncomment if you want to use automatic TLS provisioning
+          hosts:
+            - host: privatebin.app.tekkare.com  # Replace with your desired hostname
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific  # Specify the path type
+          tls:
+            - secretName: tls-privatebin  # Replace with your desired TLS secret name
+              hosts:
+                - privatebin.app.tekkare.com  # Replace with your desired hostname
+
+        resources: {}
+          # We usually recommend not to specify default resources and to leave this as a conscious
+          # choice for the user. This also increases chances charts run on environments with little
+          # resources, such as Minikube. If you do want to specify resources, uncomment the following
+          # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+          # limits:
+          #   cpu: 100m
+          #   memory: 128Mi
+          # requests:
+          #   cpu: 100m
+          #   memory: 128Mi
+
+        nodeSelector: {}
+
+        tolerations: []
+
+        affinity: {}
+
+        configs:
+          conf.php: |-
+            <?php
+            [main]
+            [model]
+            ; name of data model class to load and directory for storage
+            ; the default model "Filesystem" stores everything in the filesystem
+            class = Filesystem
+            [model_options]
+            dir = PATH "data"
+            [expire]
+            default = "1day"
+            [expire_options]
+            ; Set each one of these to the number of seconds in the expiration period,
+            ; or 0 if it should never expire
+            5min = 300
+            10min = 600
+            1hour = 3600
+            1day = 86400
+            1week = 604800
+            ; Well this is not *exactly* one month, it's 30 days:
+            1month = 2592000
+            1year = 31536000
+            never = 0
+            ?>
+            #   ; see https://github.com/PrivateBin/PrivateBin/blob/master/cfg/conf.sample.php for config
+
+        ## Enable RBAC
+        rbac:
+          create: false
+          serviceAccount:
+            # Annotations to add to the service account
+            annotations: {}
+            # The name of the service account to use.
+            # If not set and create is true, a name is generated using the fullname template
+            name: ""
+
+        # If true, create & use Pod Security Policy resources. Requires rbac.
+        podSecurityPolicy:
+          enabled: false
+          annotations: []
+    path: charts/privatebin
+    repoURL: https://github.com/PrivateBin/helm-chart
+    targetRevision: master
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true 
+    syncOptions:
+      - CreateNamespace=true
